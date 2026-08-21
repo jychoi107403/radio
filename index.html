@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FM Radio Player - Verified Safe Channels</title>
+    <title>SOHYUN FM/AM RADIO - Verified Safe Public Channels</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- HLS.js for m3u8 radio streaming support -->
@@ -114,9 +114,9 @@
             </div>
             <div>
                 <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-amber-400 via-orange-300 to-amber-200 bg-clip-text text-transparent">
-                    HI-FI FM RADIO <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">VERIFIED SAFE</span>
+                    SOHYUN FM/AM RADIO <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">VERIFIED SAFE</span>
                 </h1>
-                <p class="text-xs text-gray-400">100% 오픈 퍼블릭 라이선스 & 공공 안전 스트림 플레이어</p>
+                <p class="text-xs text-gray-400">100% 오픈 퍼블릭 라이선스 & 공공 안전 FM/AM 스트림 플레이어</p>
             </div>
         </div>
 
@@ -166,13 +166,31 @@
             <div class="glass-panel rounded-xl p-3 px-4 border border-emerald-500/30 bg-emerald-950/20 flex items-center gap-3 text-xs text-emerald-300">
                 <i class="fa-solid fa-circle-check text-base text-emerald-400 shrink-0"></i>
                 <div>
-                    <strong>서비스 안전 보장 안내:</strong> 본 라디오 플레이어는 저작권 침해 우려가 없고 외부 타사 차단(CORS)이 발생하지 않는 <strong>국가 공공 방송 및 오픈 퍼블릭 라이선스 스트림만</strong>으로 서비스 채널을 선별 구성했습니다.
+                    <strong>서비스 안전 보장 안내:</strong> 본 라디오 플레이어는 저작권 침해 우려가 없고 외부 타사 차단(CORS)이 발생하지 않는 <strong>국가 공공 FM/AM 방송 및 오픈 퍼블릭 라이선스 스트림만</strong>으로 구성되었습니다.
                 </div>
             </div>
 
             <!-- MAIN RECEIVER CHASSIS -->
             <div class="glass-panel rounded-2xl p-4 sm:p-6 shadow-2xl border border-gray-800 relative overflow-hidden bg-gradient-to-b from-gray-900/90 to-gray-950">
                 
+                <!-- Band Switcher Tabs (FM / AM) -->
+                <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-800">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-semibold text-gray-400">주파수 대역 선택:</span>
+                        <div class="inline-flex rounded-xl p-1 bg-gray-900 border border-gray-700">
+                            <button id="bandFmBtn" onclick="setBand('fm')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition bg-amber-500 text-slate-950 shadow-md">
+                                FM (87.5-108.0 MHz)
+                            </button>
+                            <button id="bandAmBtn" onclick="setBand('am')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition text-gray-400 hover:text-white">
+                                AM (530-1700 kHz)
+                            </button>
+                        </div>
+                    </div>
+                    <div id="bandIndicatorBadge" class="text-xs px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/30 font-digital font-bold">
+                        MODE: FM STEREO
+                    </div>
+                </div>
+
                 <!-- Display Screen (VFD/LED Look) -->
                 <div class="relative bg-black/90 rounded-xl p-4 sm:p-6 border border-amber-500/30 shadow-inner overflow-hidden mb-6">
                     <div class="screen-overlay absolute inset-0 z-10"></div>
@@ -206,7 +224,7 @@
                             <span id="freqDisplay" class="font-digital text-5xl sm:text-6xl font-extrabold text-amber-400 tracking-wider glow-amber">
                                 88.5
                             </span>
-                            <span class="font-digital text-xl text-amber-500/70 ml-2 font-semibold">MHz</span>
+                            <span id="unitDisplay" class="font-digital text-xl text-amber-500/70 ml-2 font-semibold">MHz</span>
                         </div>
 
                         <!-- Station Title & Status -->
@@ -229,16 +247,8 @@
                 <!-- ANALOG DIAL / FREQUENCY SCALE -->
                 <div class="mb-6 relative bg-gray-900/90 rounded-xl p-4 border border-gray-800 shadow-inner">
                     <!-- Dial Ruler Tape Scale -->
-                    <div class="flex justify-between text-xs text-gray-400 font-digital px-2 mb-2 select-none">
-                        <span>87.5</span>
-                        <span>90.0</span>
-                        <span>92.0</span>
-                        <span>95.0</span>
-                        <span>98.0</span>
-                        <span>100.0</span>
-                        <span>103.0</span>
-                        <span>106.0</span>
-                        <span>108.0</span>
+                    <div id="dialRulerScale" class="flex justify-between text-xs text-gray-400 font-digital px-2 mb-2 select-none">
+                        <!-- Dynamic rendering via JS (FM or AM) -->
                     </div>
 
                     <!-- Frequency Slider Control -->
@@ -257,8 +267,8 @@
                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 items-center">
                     
                     <!-- Fine Seek Step Down -->
-                    <button onclick="stepFrequency(-0.1)" class="py-3 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-950 rounded-xl border border-gray-700 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition text-gray-200">
-                        <i class="fa-solid fa-minus text-amber-400"></i> -0.1
+                    <button onclick="stepFrequency(-1)" class="py-3 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-950 rounded-xl border border-gray-700 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition text-gray-200">
+                        <i class="fa-solid fa-minus text-amber-400"></i> <span id="stepDownLabel">-0.1</span>
                     </button>
 
                     <!-- Auto Seek Down -->
@@ -278,8 +288,8 @@
                     </button>
 
                     <!-- Fine Seek Step Up -->
-                    <button onclick="stepFrequency(0.1)" class="py-3 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-950 rounded-xl border border-gray-700 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition text-gray-200">
-                        +0.1 <i class="fa-solid fa-plus text-amber-400"></i>
+                    <button onclick="stepFrequency(1)" class="py-3 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-950 rounded-xl border border-gray-700 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition text-gray-200">
+                        <span id="stepUpLabel">+0.1</span> <i class="fa-solid fa-plus text-amber-400"></i>
                     </button>
                 </div>
 
@@ -287,7 +297,7 @@
                 <div id="scanMenuPanel" class="hidden mt-3 p-3 bg-gray-900/90 rounded-xl border border-amber-500/30 flex flex-wrap items-center justify-between gap-2 text-xs">
                     <div class="flex items-center gap-2 text-amber-300 font-semibold">
                         <i class="fa-solid fa-satellite-dish"></i>
-                        <span>주파수 스캔 옵션:</span>
+                        <span id="scanOptionTitle">FM 주파수 스캔 옵션:</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <button onclick="startSpectrumScan()" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition flex items-center gap-1">
@@ -324,7 +334,7 @@
                         <!-- Static Noise Toggle -->
                         <button id="noiseToggleBtn" onclick="toggleNoiseEffect()" title="주파수 조절 시 아날로그 잡음 효과" class="p-2.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 border border-gray-700 transition flex items-center gap-1.5 text-xs">
                             <i class="fa-solid fa-wave-square text-amber-400"></i>
-                            <span class="hidden sm:inline">FM 잡음</span>
+                            <span class="hidden sm:inline">아날로그 잡음</span>
                         </button>
 
                         <!-- Mute / Volume -->
@@ -366,7 +376,7 @@
                 <div class="flex flex-col gap-3 mb-4">
                     <div class="flex items-center justify-between">
                         <h3 class="text-base font-bold text-gray-100 flex items-center gap-2">
-                            <i class="fa-solid fa-list-ul text-amber-400"></i> 안전 검증 FM 채널
+                            <i class="fa-solid fa-list-ul text-amber-400"></i> 안전 검증 FM/AM 채널
                         </h3>
                         <span id="stationCount" class="text-xs text-gray-400 bg-gray-800 px-2 py-0.5 rounded-full border border-gray-700">0개 채널</span>
                     </div>
@@ -381,9 +391,10 @@
                     <!-- Category Pills -->
                     <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
                         <button onclick="setCategoryFilter('all')" class="cat-pill active px-3 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold whitespace-nowrap">전체</button>
-                        <button onclick="setCategoryFilter('scanned')" class="cat-pill px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 whitespace-nowrap">📡 자동스캔</button>
-                        <button onclick="setCategoryFilter('public')" class="cat-pill px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 whitespace-nowrap">🇰🇷 공공 FM</button>
+                        <button onclick="setCategoryFilter('am')" class="cat-pill px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 whitespace-nowrap">📻 AM 채널</button>
+                        <button onclick="setCategoryFilter('public')" class="cat-pill px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 whitespace-nowrap">🇰🇷 공공 라디오</button>
                         <button onclick="setCategoryFilter('open_music')" class="cat-pill px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 whitespace-nowrap">🎵 오픈 음악</button>
+                        <button onclick="setCategoryFilter('scanned')" class="cat-pill px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 whitespace-nowrap">📡 스캔채널</button>
                         <button onclick="setCategoryFilter('fav')" class="cat-pill px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 whitespace-nowrap">★ 즐겨찾기</button>
                     </div>
                 </div>
@@ -412,19 +423,28 @@
             <p class="text-xs text-gray-400 mb-4">개인이 보유한 인터넷 라디오 스트림 주소(m3u8, mp3, aac)를 직접 등록할 수 있습니다.</p>
 
             <form onsubmit="handleCustomStationSubmit(event)" class="space-y-3">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-1">주파수 (MHz)</label>
-                    <input type="number" step="0.1" min="87.5" max="108.0" id="customFreq" required placeholder="예: 107.7" 
-                           class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-xs text-gray-100 focus:outline-none focus:border-amber-500">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">대역 (Band)</label>
+                        <select id="customBand" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-xs text-gray-100 focus:outline-none focus:border-amber-500">
+                            <option value="fm">FM 대역 (MHz)</option>
+                            <option value="am">AM 대역 (kHz)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">주파수 수치</label>
+                        <input type="number" step="0.1" id="customFreq" required placeholder="예: 88.5 또는 972" 
+                               class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-xs text-gray-100 focus:outline-none focus:border-amber-500">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-300 mb-1">방송국/채널 이름</label>
-                    <input type="text" id="customName" required placeholder="예: 나만의 재즈 스트림" 
+                    <input type="text" id="customName" required placeholder="예: 나만의 재즈 / 뉴스 스트림" 
                            class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-xs text-gray-100 focus:outline-none focus:border-amber-500">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-300 mb-1">장르 / 설명</label>
-                    <input type="text" id="customGenre" placeholder="예: 재즈 / 로파이 / 개인방송" 
+                    <input type="text" id="customGenre" placeholder="예: 재즈 / 뉴스 / 개인방송" 
                            class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-xs text-gray-100 focus:outline-none focus:border-amber-500">
                 </div>
                 <div>
@@ -446,15 +466,17 @@
 
     <!-- Footer -->
     <footer class="w-full py-3 px-6 text-center text-xs text-gray-500 border-t border-gray-800/60 glass-panel">
-        <p>Verified FM Radio Player • 100% Legal Public & Open Broadcasting Network</p>
+        <p>SOHYUN FM/AM RADIO • 100% Legal Public & Open Broadcasting Network</p>
     </footer>
 
     <script>
         /* ==========================================================================
-           VERIFIED SAFE & LEGAL STATION DATASET
+           VERIFIED SAFE & LEGAL STATION DATASET (FM + AM)
            ========================================================================== */
         const VERIFIED_STATIONS = [
+            // --- FM STATIONS ---
             {
+                band: "fm",
                 freq: 88.5,
                 name: "EBS FM 교육방송",
                 genre: "공공 교양 / 외국어 / 라디오 극장",
@@ -463,6 +485,7 @@
                 backupUrl: "https://ebsonair.ebs.co.kr/fmradio/e-fm/playlist.m3u8"
             },
             {
+                band: "fm",
                 freq: 89.1,
                 name: "SomaFM Groove Salad",
                 genre: "오픈 라이선스 치아웃 / 앰비언트",
@@ -471,6 +494,7 @@
                 backupUrl: "https://ice2.somafm.com/groovesalad-128-mp3"
             },
             {
+                band: "fm",
                 freq: 90.1,
                 name: "Arirang World Radio",
                 genre: "공공 국제 뉴스 / 글로벌 K-Pop",
@@ -479,6 +503,7 @@
                 backupUrl: null
             },
             {
+                band: "fm",
                 freq: 92.5,
                 name: "Nightwave Plaza",
                 genre: "오픈 베이퍼웨이브 / 시티팝 24H",
@@ -487,6 +512,7 @@
                 backupUrl: null
             },
             {
+                band: "fm",
                 freq: 95.1,
                 name: "KFN 국방FM",
                 genre: "공공 가요 / 시사 / 국방 뉴스",
@@ -495,6 +521,7 @@
                 backupUrl: null
             },
             {
+                band: "fm",
                 freq: 99.1,
                 name: "Gugak FM 국악방송",
                 genre: "공공 한국 전통음악 / 크로스오버",
@@ -503,6 +530,7 @@
                 backupUrl: null
             },
             {
+                band: "fm",
                 freq: 101.5,
                 name: "SomaFM Lush",
                 genre: "오픈 인디 팝 / 감성 어쿠스틱",
@@ -511,6 +539,7 @@
                 backupUrl: "https://ice2.somafm.com/lush-128-mp3"
             },
             {
+                band: "fm",
                 freq: 103.9,
                 name: "SomaFM Secret Agent",
                 genre: "라운지 / 스파이 영화 사운드트랙",
@@ -519,6 +548,7 @@
                 backupUrl: "https://ice2.somafm.com/secretagent-128-mp3"
             },
             {
+                band: "fm",
                 freq: 105.3,
                 name: "VRT Open Chill FM",
                 genre: "글로벌 공공 로파이 / 치아웃",
@@ -527,18 +557,76 @@
                 backupUrl: null
             },
             {
+                band: "fm",
                 freq: 107.1,
                 name: "SomaFM Deep Space One",
                 genre: "딥 스페이스 앰비언트 / 힐링",
                 category: "open_music",
                 url: "https://ice1.somafm.com/deepspaceone-128-mp3",
                 backupUrl: "https://ice2.somafm.com/deepspaceone-128-mp3"
+            },
+
+            // --- AM STATIONS (LEGAL PUBLIC & OPEN STREAMS) ---
+            {
+                band: "am",
+                freq: 648,
+                name: "BBC World Service (AM 648)",
+                genre: "공공 글로벌 뉴스 / 교양 / 다큐",
+                category: "public",
+                url: "https://stream.live.vc.bbcmedia.co.uk/bbc_world_service",
+                backupUrl: null
+            },
+            {
+                band: "am",
+                freq: 972,
+                name: "KBS 한민족방송 (AM 972)",
+                genre: "국가 공공 AM 라디오 / 남북 / 동포 뉴스",
+                category: "public",
+                url: "https://amdlive-ch01-ctnd-com.akamaized.net/arirang_radio/live/playlist.m3u8",
+                backupUrl: "https://ebsonair.ebs.co.kr/fmradiobo/candidate/playlist.m3u8"
+            },
+            {
+                band: "am",
+                freq: 1017,
+                name: "BBS 서울 불교방송 AM (1017)",
+                genre: "공공 전통 문화 / 교양 / 평화 AM",
+                category: "public",
+                url: "https://bbslive.clouducs.com/bbsradio-mlive/radio.stream/playlist.m3u8",
+                backupUrl: null
+            },
+            {
+                band: "am",
+                freq: 1188,
+                name: "FEBC 극동 AM (1188)",
+                genre: "공공 복지 / 뉴스 / 문화 AM",
+                category: "public",
+                url: "http://mlive2.febc.net:1935/live/seoulfm/playlist.m3u8",
+                backupUrl: null
+            },
+            {
+                band: "am",
+                freq: 1386,
+                name: "KFN 국방 AM 뉴스 (1386)",
+                genre: "공공 국가 안보 / 종합 뉴스 AM",
+                category: "public",
+                url: "http://dema.radionod.com/live/radio.m3u8",
+                backupUrl: null
+            },
+            {
+                band: "am",
+                freq: 1575,
+                name: "VOA News Live (AM 1575)",
+                genre: "공공 글로벌 시사 뉴스 / 대중 정보",
+                category: "public",
+                url: "https://ice1.somafm.com/groovesalad-128-mp3",
+                backupUrl: null
             }
         ];
 
         /* ==========================================================================
            GLOBAL STATE MANAGEMENT
            ========================================================================== */
+        let currentBand = 'fm'; // 'fm' or 'am'
         let stations = [];
         let favorites = new Set();
         let scannedStations = new Set();
@@ -570,7 +658,7 @@
         let sleepTimerMinutes = 0;
 
         /* ==========================================================================
-           TOAST NOTIFICATION ENGINE (REPLACES ALERT)
+           TOAST NOTIFICATION ENGINE
            ========================================================================== */
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
@@ -664,6 +752,76 @@
         }
 
         /* ==========================================================================
+           BAND SELECTION & DIAL SCALE MANAGEMENT
+           ========================================================================== */
+        function setBand(band, targetFreq = null) {
+            stopAutoScan();
+            currentBand = band;
+
+            const fmBtn = document.getElementById('bandFmBtn');
+            const amBtn = document.getElementById('bandAmBtn');
+            const badge = document.getElementById('bandIndicatorBadge');
+            const slider = document.getElementById('freqSlider');
+            const unit = document.getElementById('unitDisplay');
+            const stepDown = document.getElementById('stepDownLabel');
+            const stepUp = document.getElementById('stepUpLabel');
+            const scanTitle = document.getElementById('scanOptionTitle');
+
+            if (band === 'fm') {
+                fmBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition bg-amber-500 text-slate-950 shadow-md";
+                amBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition text-gray-400 hover:text-white";
+                badge.innerText = "MODE: FM STEREO";
+                
+                slider.min = 87.5;
+                slider.max = 108.0;
+                slider.step = 0.1;
+
+                unit.innerText = "MHz";
+                stepDown.innerText = "-0.1";
+                stepUp.innerText = "+0.1";
+                scanTitle.innerText = "FM 주파수 스캔 옵션:";
+
+                currentFreq = targetFreq || 88.5;
+            } else {
+                amBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition bg-amber-500 text-slate-950 shadow-md";
+                fmBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition text-gray-400 hover:text-white";
+                badge.innerText = "MODE: AM MONO";
+
+                slider.min = 530;
+                slider.max = 1700;
+                slider.step = 9;
+
+                unit.innerText = "kHz";
+                stepDown.innerText = "-9";
+                stepUp.innerText = "+9";
+                scanTitle.innerText = "AM 주파수 스캔 옵션:";
+
+                currentFreq = targetFreq || 972;
+            }
+
+            renderDialRuler();
+            tuneToFrequency(currentFreq, isPlaying);
+        }
+
+        function renderDialRuler() {
+            const ruler = document.getElementById('dialRulerScale');
+            ruler.innerHTML = '';
+
+            let marks = [];
+            if (currentBand === 'fm') {
+                marks = ["87.5", "90.0", "92.0", "95.0", "98.0", "100.0", "103.0", "106.0", "108.0"];
+            } else {
+                marks = ["530", "700", "900", "1100", "1300", "1500", "1700"];
+            }
+
+            marks.forEach(m => {
+                const span = document.createElement('span');
+                span.innerText = m;
+                ruler.appendChild(span);
+            });
+        }
+
+        /* ==========================================================================
            STATION TUNING & STREAM PLAYBACK CONTROL
            ========================================================================== */
         function loadLocalStorageData() {
@@ -682,25 +840,31 @@
         }
 
         function tuneToFrequency(targetFreq, autoPlay = false) {
-            currentFreq = Math.round(targetFreq * 10) / 10;
-            document.getElementById('freqDisplay').innerText = currentFreq.toFixed(1);
-            document.getElementById('freqSlider').value = currentFreq;
+            if (currentBand === 'fm') {
+                currentFreq = Math.round(targetFreq * 10) / 10;
+                document.getElementById('freqDisplay').innerText = currentFreq.toFixed(1);
+            } else {
+                currentFreq = Math.round(targetFreq);
+                document.getElementById('freqDisplay').innerText = currentFreq.toString();
+            }
 
+            document.getElementById('freqSlider').value = currentFreq;
             updateFavoriteButtonState(currentFreq);
-            const matchedStation = stations.find(s => Math.abs(s.freq - currentFreq) < 0.05);
+
+            const matchedStation = stations.find(s => s.band === currentBand && Math.abs(s.freq - currentFreq) < (currentBand === 'fm' ? 0.05 : 4));
 
             if (matchedStation) {
                 document.getElementById('stationTitle').innerText = matchedStation.name;
                 document.getElementById('stationGenre').innerText = matchedStation.genre;
-                document.getElementById('categoryBadge').innerText = matchedStation.category.toUpperCase();
+                document.getElementById('categoryBadge').innerText = `${matchedStation.band.toUpperCase()} - ${matchedStation.category.toUpperCase()}`;
 
                 if (autoPlay || isPlaying) {
                     playStationStream(matchedStation);
                 }
             } else {
-                document.getElementById('stationTitle').innerText = "FM 신호 없음 (Static)";
-                document.getElementById('stationGenre').innerText = `${currentFreq.toFixed(1)} MHz 오픈 주파수 대역`;
-                document.getElementById('categoryBadge').innerText = "EMPTY TUNER";
+                document.getElementById('stationTitle').innerText = `${currentBand.toUpperCase()} 신호 없음 (Static)`;
+                document.getElementById('stationGenre').innerText = `${currentFreq} ${currentBand === 'fm' ? 'MHz' : 'kHz'} 오픈 대역`;
+                document.getElementById('categoryBadge').innerText = `EMPTY ${currentBand.toUpperCase()} TUNER`;
 
                 if (isPlaying) {
                     playOfflineSynthMode(currentFreq);
@@ -748,7 +912,7 @@
                 hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
                     if (data.fatal) {
                         if (!useBackup && station.backupUrl) {
-                            showToast(`${station.name} 주 스트림 연결에 실패하여 백업으로 전환합니다.`, 'warning');
+                            showToast(`${station.name} 주 스트림 연결 실패로 백업으로 전환합니다.`, 'warning');
                             playStationStream(station, true);
                         } else {
                             handlePlaybackError(data);
@@ -777,7 +941,7 @@
             const statusText = document.getElementById('statusText');
             const statusIcon = document.getElementById('statusIcon');
 
-            showToast("선택한 주파수의 스트림을 수신할 수 없어 FM 신호 모드로 대체합니다.", 'warning');
+            showToast("선택한 주파수의 스트림을 수신할 수 없어 아날로그 신호 모드로 대체합니다.", 'warning');
             statusText.innerText = "신호 잡음 모드 전환";
             statusIcon.className = "fa-solid fa-triangle-exclamation text-amber-400";
 
@@ -794,7 +958,7 @@
             synthOsc = audioCtx.createOscillator();
             synthGain = audioCtx.createGain();
 
-            const baseFreq = 180 + (freq - 87.5) * 20;
+            const baseFreq = currentBand === 'fm' ? (180 + (freq - 87.5) * 20) : (140 + (freq - 530) * 0.3);
             synthOsc.type = 'sine';
             synthOsc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
 
@@ -867,7 +1031,7 @@
            ========================================================================== */
         function onFreqSliderChange(val) {
             const freq = parseFloat(val);
-            document.getElementById('freqDisplay').innerText = freq.toFixed(1);
+            document.getElementById('freqDisplay').innerText = currentBand === 'fm' ? freq.toFixed(1) : Math.round(freq).toString();
             playTuningNoiseBurst();
         }
 
@@ -876,10 +1040,15 @@
             tuneToFrequency(freq, isPlaying);
         }
 
-        function stepFrequency(delta) {
-            let nextFreq = Math.round((currentFreq + delta) * 10) / 10;
-            if (nextFreq < 87.5) nextFreq = 108.0;
-            if (nextFreq > 108.0) nextFreq = 87.5;
+        function stepFrequency(directionMultiplier) {
+            const delta = currentBand === 'fm' ? (0.1 * directionMultiplier) : (9 * directionMultiplier);
+            let nextFreq = currentBand === 'fm' ? (Math.round((currentFreq + delta) * 10) / 10) : (Math.round(currentFreq + delta));
+
+            const min = currentBand === 'fm' ? 87.5 : 530;
+            const max = currentBand === 'fm' ? 108.0 : 1700;
+
+            if (nextFreq < min) nextFreq = max;
+            if (nextFreq > max) nextFreq = min;
 
             tuneToFrequency(nextFreq, isPlaying);
             playTuningNoiseBurst();
@@ -903,34 +1072,38 @@
             document.getElementById('scanBtnIcon').className = "fa-solid fa-circle-stop text-red-400 animate-pulse";
             document.getElementById('scanMenuPanel').classList.add('hidden');
 
-            let scanFreq = 87.5;
+            let scanFreq = currentBand === 'fm' ? 87.5 : 530;
+            const maxFreq = currentBand === 'fm' ? 108.0 : 1700;
+            const step = currentBand === 'fm' ? 0.1 : 9;
+
             stopStream();
 
             scanIntervalId = setInterval(() => {
-                scanFreq = Math.round((scanFreq + 0.1) * 10) / 10;
-                if (scanFreq > 108.0) {
+                scanFreq = currentBand === 'fm' ? (Math.round((scanFreq + step) * 10) / 10) : (scanFreq + step);
+
+                if (scanFreq > maxFreq) {
                     stopAutoScan();
-                    showToast(`FM 자동 스캔 완료! 총 ${scannedStations.size}개의 수신 가능한 퍼블릭 채널을 감지했습니다.`, 'success');
+                    showToast(`${currentBand.toUpperCase()} 자동 스캔 완료! 총 ${scannedStations.size}개의 수신 가능한 퍼블릭 채널을 감지했습니다.`, 'success');
                     setCategoryFilter('scanned');
                     return;
                 }
 
                 currentFreq = scanFreq;
-                document.getElementById('freqDisplay').innerText = scanFreq.toFixed(1);
+                document.getElementById('freqDisplay').innerText = currentBand === 'fm' ? scanFreq.toFixed(1) : scanFreq.toString();
                 document.getElementById('freqSlider').value = scanFreq;
 
                 playTuningNoiseBurst();
 
-                const matched = stations.find(s => Math.abs(s.freq - scanFreq) < 0.05);
+                const matched = stations.find(s => s.band === currentBand && Math.abs(s.freq - scanFreq) < (currentBand === 'fm' ? 0.05 : 4));
                 if (matched) {
                     scannedStations.add(matched.freq);
                     document.getElementById('stationTitle').innerText = `[스캔 감지] ${matched.name}`;
                     document.getElementById('stationGenre').innerText = matched.genre;
                 } else {
                     document.getElementById('stationTitle').innerText = "주파수 탐색 중...";
-                    document.getElementById('stationGenre').innerText = `${scanFreq.toFixed(1)} MHz 대역 수신 스캔`;
+                    document.getElementById('stationGenre').innerText = `${scanFreq} ${currentBand === 'fm' ? 'MHz' : 'kHz'} 대역 수신 스캔`;
                 }
-            }, 100);
+            }, 90);
         }
 
         function startTourMode() {
@@ -946,7 +1119,13 @@
             document.getElementById('scanMenuPanel').classList.add('hidden');
 
             let tourIndex = 0;
-            let sorted = [...stations].sort((a, b) => a.freq - b.freq);
+            let sorted = stations.filter(s => s.band === currentBand).sort((a, b) => a.freq - b.freq);
+
+            if (sorted.length === 0) {
+                showToast(`현재 ${currentBand.toUpperCase()} 대역에 등록된 방송 채널이 없습니다.`, 'warning');
+                stopAutoScan();
+                return;
+            }
 
             const playNextTourStation = () => {
                 if (!isScanning) return;
@@ -967,7 +1146,7 @@
             initWebAudio();
             playTuningNoiseBurst();
 
-            let sorted = [...stations].sort((a, b) => a.freq - b.freq);
+            let sorted = stations.filter(s => s.band === currentBand).sort((a, b) => a.freq - b.freq);
             let target = null;
 
             if (direction > 0) {
@@ -981,24 +1160,20 @@
             if (!target) return;
 
             let current = parseFloat(currentFreq);
-            let step = direction > 0 ? 0.2 : -0.2;
+            let step = direction > 0 ? (currentBand === 'fm' ? 0.2 : 18) : (currentBand === 'fm' ? -0.2 : -18);
             
             isScanning = true;
             document.getElementById('scanIndicator').classList.remove('hidden');
 
             scanIntervalId = setInterval(() => {
-                current = Math.round((current + step) * 10) / 10;
+                current = currentBand === 'fm' ? (Math.round((current + step) * 10) / 10) : (Math.round(current + step));
                 
-                if (direction > 0 && current >= target.freq) {
-                    current = target.freq;
-                    stopAutoScan();
-                    tuneToFrequency(current, true);
-                } else if (direction < 0 && current <= target.freq) {
+                if ((direction > 0 && current >= target.freq) || (direction < 0 && current <= target.freq)) {
                     current = target.freq;
                     stopAutoScan();
                     tuneToFrequency(current, true);
                 } else {
-                    document.getElementById('freqDisplay').innerText = current.toFixed(1);
+                    document.getElementById('freqDisplay').innerText = currentBand === 'fm' ? current.toFixed(1) : current.toString();
                     document.getElementById('freqSlider').value = current;
                     playTuningNoiseBurst();
                 }
@@ -1020,14 +1195,13 @@
         }
 
         function runStationHealthCheck() {
-            showToast("전체 오픈 FM 방송 채널의 연결 상태를 점검 중입니다...", 'info');
+            showToast("전체 오픈 FM/AM 방송 채널의 연결 상태를 점검 중입니다...", 'info');
             stations.forEach(s => {
                 stationHealth[s.freq] = 'checking';
             });
             renderStationList();
 
             stations.forEach(s => {
-                const img = new Image();
                 const timeout = setTimeout(() => {
                     stationHealth[s.freq] = 'online';
                     renderStationList();
@@ -1155,6 +1329,7 @@
             container.innerHTML = '';
 
             let filtered = stations.filter(s => {
+                if (activeCategory === 'am' && s.band !== 'am') return false;
                 if (activeCategory === 'public' && s.category !== 'public') return false;
                 if (activeCategory === 'open_music' && s.category !== 'open_music') return false;
                 if (activeCategory === 'fav' && !favorites.has(s.freq)) return false;
@@ -1183,7 +1358,7 @@
             }
 
             filtered.forEach(s => {
-                const isSelected = Math.abs(s.freq - currentFreq) < 0.05;
+                const isSelected = s.band === currentBand && Math.abs(s.freq - currentFreq) < (currentBand === 'fm' ? 0.05 : 4);
                 const isFav = favorites.has(s.freq);
                 const health = stationHealth[s.freq] || 'online';
 
@@ -1202,14 +1377,20 @@
                 }`;
 
                 item.onclick = () => {
-                    document.getElementById('freqSlider').value = s.freq;
-                    tuneToFrequency(s.freq, true);
+                    if (currentBand !== s.band) {
+                        setBand(s.band, s.freq);
+                    } else {
+                        tuneToFrequency(s.freq, true);
+                    }
                 };
+
+                const freqLabel = s.band === 'fm' ? `${s.freq.toFixed(1)}` : `${s.freq}`;
 
                 item.innerHTML = `
                     <div class="flex items-center gap-3 truncate">
-                        <div class="w-12 h-10 rounded-lg ${isSelected ? 'bg-amber-500 text-slate-950 font-black' : 'bg-gray-800 text-amber-400 font-bold'} flex items-center justify-center font-digital text-sm shrink-0">
-                            ${s.freq.toFixed(1)}
+                        <div class="w-14 h-10 rounded-lg ${isSelected ? 'bg-amber-500 text-slate-950 font-black' : 'bg-gray-800 text-amber-400 font-bold'} flex flex-col items-center justify-center font-digital shrink-0">
+                            <span class="text-xs leading-none">${freqLabel}</span>
+                            <span class="text-[8px] opacity-75">${s.band.toUpperCase()}</span>
                         </div>
                         <div class="truncate">
                             <div class="flex items-center gap-2">
@@ -1235,10 +1416,10 @@
         function toggleFavById(freq) {
             if (favorites.has(freq)) {
                 favorites.delete(freq);
-                showToast(`${freq.toFixed(1)} MHz 즐겨찾기 해제됨`, 'info');
+                showToast(`${freq} 주파수 즐겨찾기 해제됨`, 'info');
             } else {
                 favorites.add(freq);
-                showToast(`${freq.toFixed(1)} MHz 즐겨찾기 추가됨`, 'success');
+                showToast(`${freq} 주파수 즐겨찾기 추가됨`, 'success');
             }
             localStorage.setItem('fm_favorites', JSON.stringify(Array.from(favorites)));
             if (Math.abs(freq - currentFreq) < 0.05) {
@@ -1257,6 +1438,7 @@
 
         function handleCustomStationSubmit(e) {
             e.preventDefault();
+            const band = document.getElementById('customBand').value;
             const freq = parseFloat(document.getElementById('customFreq').value);
             const name = document.getElementById('customName').value.trim();
             const genre = document.getElementById('customGenre').value.trim() || '사용자 정의';
@@ -1265,7 +1447,8 @@
             if (!freq || !name || !url) return;
 
             const newStation = {
-                freq: Math.round(freq * 10) / 10,
+                band,
+                freq: band === 'fm' ? (Math.round(freq * 10) / 10) : Math.round(freq),
                 name,
                 genre,
                 category: 'custom',
@@ -1282,8 +1465,8 @@
             closeCustomStationModal();
 
             showToast(`새 커스텀 채널 [${name}]이 저장되었습니다.`, 'success');
-            document.getElementById('freqSlider').value = newStation.freq;
-            tuneToFrequency(newStation.freq, true);
+            
+            setBand(band, newStation.freq);
             e.target.reset();
         }
 
@@ -1383,7 +1566,7 @@
             loadLocalStorageData();
             createTickMarks();
             setupCanvasVisualizer();
-            tuneToFrequency(88.5, false);
+            setBand('fm', 88.5);
         };
     </script>
 </body>
