@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FM Radio Player - 라디오 주파수 채널 플레이어</title>
+    <title>FM Radio Player - 실시간 라디오 주파수 채널 플레이어</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- HLS.js for m3u8 radio streaming support -->
@@ -16,7 +16,7 @@
 
         body {
             font-family: 'Noto Sans KR', sans-serif;
-            background-color: #0b0f19;
+            background-color: #080c14;
             color: #f1f5f9;
             user-select: none;
         }
@@ -31,14 +31,14 @@
             height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #111827;
+            background: #0f172a;
         }
         ::-webkit-scrollbar-thumb {
-            background: #374151;
+            background: #334155;
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #4b5563;
+            background: #475569;
         }
 
         /* Tuner Dial Range styling */
@@ -54,7 +54,7 @@
             width: 100%;
             height: 48px;
             cursor: pointer;
-            background: rgba(15, 23, 42, 0.8);
+            background: rgba(15, 23, 42, 0.85);
             border-radius: 8px;
             border: 1px solid #334155;
         }
@@ -77,14 +77,11 @@
         .glow-cyan {
             text-shadow: 0 0 10px rgba(6, 182, 212, 0.7), 0 0 20px rgba(6, 182, 212, 0.4);
         }
-        .glow-green {
-            box-shadow: 0 0 12px rgba(34, 197, 94, 0.6);
-        }
         
         /* Glassmorphism Panel */
         .glass-panel {
-            background: rgba(17, 24, 39, 0.75);
-            backdrop-filter: blur(12px);
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(14px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
@@ -102,15 +99,6 @@
             background-size: 100% 4px, 6px 100%;
             pointer-events: none;
         }
-
-        /* Animated signal bars */
-        @keyframes pulse-signal {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-        .signal-active {
-            animation: pulse-signal 2s infinite ease-in-out;
-        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between overflow-x-hidden">
@@ -123,16 +111,22 @@
             </div>
             <div>
                 <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-amber-400 via-orange-300 to-amber-200 bg-clip-text text-transparent">
-                    HI-FI FM RADIO <span class="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">ONLINE</span>
+                    HI-FI FM RADIO <span class="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">ONLINE v2.0</span>
                 </h1>
-                <p class="text-xs text-gray-400">실시간 라이브 FM 채널 스트리밍 & 아날로그 튜너</p>
+                <p class="text-xs text-gray-400">실시간 FM 채널 라이브 스트리밍 & 자동 백업 복구 튜너</p>
             </div>
         </div>
 
-        <div class="flex items-center gap-2 sm:gap-4">
+        <div class="flex items-center gap-2 sm:gap-3">
+            <!-- Diagnostics / Health Check Button -->
+            <button onclick="runStationHealthCheck()" class="text-xs px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-stethoscope"></i>
+                <span class="hidden sm:inline">채널 상태 점검</span>
+            </button>
+
             <!-- Sleep Timer Dropdown -->
             <div class="relative">
-                <button id="sleepTimerBtn" onclick="toggleTimerMenu()" class="text-xs sm:text-sm px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 flex items-center gap-2 border border-gray-700 transition">
+                <button id="sleepTimerBtn" onclick="toggleTimerMenu()" class="text-xs px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 flex items-center gap-2 border border-gray-700 transition">
                     <i class="fa-regular fa-clock text-amber-400"></i>
                     <span id="timerStatusText">타이머</span>
                 </button>
@@ -146,7 +140,7 @@
             </div>
 
             <!-- Custom Station Modal Trigger -->
-            <button onclick="openCustomStationModal()" class="text-xs sm:text-sm px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 transition">
+            <button onclick="openCustomStationModal()" class="text-xs px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 transition">
                 <i class="fa-solid fa-plus"></i>
                 <span class="hidden sm:inline">채널 추가</span>
             </button>
@@ -172,10 +166,13 @@
                             <span id="stereoIndicator" class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold border border-amber-500/40 glow-amber flex items-center gap-1">
                                 <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> STEREO
                             </span>
+                            <span id="scanIndicator" class="hidden px-2 py-0.5 rounded bg-red-500/20 text-red-400 font-bold border border-red-500/40 animate-pulse flex items-center gap-1">
+                                <i class="fa-solid fa-radar text-xs"></i> SCANNING...
+                            </span>
                             <span id="categoryBadge" class="text-cyan-400">FM BROADCAST</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span>RSSI Signal:</span>
+                            <span>Signal Quality:</span>
                             <div class="flex items-end gap-1 h-3" id="signalMeter">
                                 <div class="w-1 bg-amber-500 h-1/4 rounded-sm"></div>
                                 <div class="w-1 bg-amber-500 h-2/4 rounded-sm"></div>
@@ -235,35 +232,57 @@
 
                     <!-- Tick Mark Decorator -->
                     <div class="w-full h-3 mt-1 flex justify-between px-1 opacity-40">
-                        <template id="tickTemplate">
-                            <div class="w-0.5 h-2 bg-gray-500"></div>
-                        </template>
                         <div id="tickContainer" class="w-full flex justify-between items-center"></div>
                     </div>
                 </div>
 
                 <!-- CONTROLS ROW -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 items-center">
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 items-center">
                     
                     <!-- Fine Seek Step Down -->
-                    <button onclick="stepFrequency(-0.1)" class="py-3 px-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-950 rounded-xl border border-gray-700 font-semibold text-sm flex items-center justify-center gap-2 transition text-gray-200">
-                        <i class="fa-solid fa-minus text-amber-400"></i> -0.1 MHz
+                    <button onclick="stepFrequency(-0.1)" class="py-3 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-950 rounded-xl border border-gray-700 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition text-gray-200">
+                        <i class="fa-solid fa-minus text-amber-400"></i> -0.1
                     </button>
 
                     <!-- Auto Seek Down -->
-                    <button onclick="seekStation(-1)" class="py-3 px-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-950 rounded-xl border border-gray-700 font-semibold text-sm flex items-center justify-center gap-2 transition text-cyan-400">
+                    <button onclick="seekNextStationWithSweep(-1)" class="py-3 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-950 rounded-xl border border-gray-700 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition text-cyan-400">
                         <i class="fa-solid fa-backward-step"></i> 탐색 ◀
                     </button>
 
+                    <!-- Auto Scan Button -->
+                    <button id="autoScanBtn" onclick="toggleAutoScanMenu()" class="py-3 px-3 bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 active:scale-95 rounded-xl border border-amber-500/40 font-bold text-xs sm:text-sm text-amber-300 flex items-center justify-center gap-1.5 transition shadow-md shadow-amber-500/10">
+                        <i id="scanBtnIcon" class="fa-solid fa-radar text-amber-400 animate-spin-slow"></i>
+                        <span id="scanBtnText">자동 스캔</span>
+                    </button>
+
                     <!-- Auto Seek Up -->
-                    <button onclick="seekStation(1)" class="py-3 px-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-950 rounded-xl border border-gray-700 font-semibold text-sm flex items-center justify-center gap-2 transition text-cyan-400">
+                    <button onclick="seekNextStationWithSweep(1)" class="py-3 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-950 rounded-xl border border-gray-700 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition text-cyan-400">
                         탐색 ▶ <i class="fa-solid fa-forward-step"></i>
                     </button>
 
                     <!-- Fine Seek Step Up -->
-                    <button onclick="stepFrequency(0.1)" class="py-3 px-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-950 rounded-xl border border-gray-700 font-semibold text-sm flex items-center justify-center gap-2 transition text-gray-200">
-                        +0.1 MHz <i class="fa-solid fa-plus text-amber-400"></i>
+                    <button onclick="stepFrequency(0.1)" class="py-3 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-950 rounded-xl border border-gray-700 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition text-gray-200">
+                        +0.1 <i class="fa-solid fa-plus text-amber-400"></i>
                     </button>
+                </div>
+
+                <!-- Auto Scan Mode Sub-Panel -->
+                <div id="scanMenuPanel" class="hidden mt-3 p-3 bg-gray-900/90 rounded-xl border border-amber-500/30 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div class="flex items-center gap-2 text-amber-300 font-semibold">
+                        <i class="fa-solid fa-satellite-dish"></i>
+                        <span>주파수 스캔 옵션:</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="startSpectrumScan()" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition flex items-center gap-1">
+                            <i class="fa-solid fa-play text-xs"></i> 전체 대역 자동 스캔
+                        </button>
+                        <button onclick="startTourMode()" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-semibold transition flex items-center gap-1">
+                            <i class="fa-solid fa-stopwatch text-xs"></i> 5초 방송 투어
+                        </button>
+                        <button onclick="stopAutoScan()" class="px-2.5 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 transition">
+                            스캔 중지
+                        </button>
+                    </div>
                 </div>
 
                 <!-- AUDIO & PLAYBACK FOOTER CONTROLS -->
@@ -275,7 +294,7 @@
                             <i id="playBtnIcon" class="fa-solid fa-play ml-1"></i>
                         </button>
                         
-                        <div>
+                        <div class="flex flex-col gap-1">
                             <button id="favBtn" onclick="toggleFavoriteCurrent()" class="text-xs px-2.5 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 flex items-center gap-1.5 transition">
                                 <i id="favIcon" class="fa-regular fa-star text-amber-400"></i>
                                 <span id="favText">즐겨찾기 추가</span>
@@ -284,9 +303,8 @@
                     </div>
 
                     <!-- Volume & Audio Noise Settings -->
-                    <div class="flex items-center gap-4 flex-1 max-w-xs justify-end">
-                        
-                        <!-- Static Noise Toggle (Realistic FM Feel) -->
+                    <div class="flex items-center gap-3 flex-1 max-w-xs justify-end">
+                        <!-- Static Noise Toggle -->
                         <button id="noiseToggleBtn" onclick="toggleNoiseEffect()" title="주파수 조절 시 아날로그 잡음 효과" class="p-2.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 border border-gray-700 transition flex items-center gap-1.5 text-xs">
                             <i class="fa-solid fa-wave-square text-amber-400"></i>
                             <span class="hidden sm:inline">FM 잡음</span>
@@ -346,6 +364,7 @@
                     <!-- Category Pills -->
                     <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
                         <button onclick="setCategoryFilter('all')" class="cat-pill active px-3 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold whitespace-nowrap">전체</button>
+                        <button onclick="setCategoryFilter('scanned')" class="cat-pill px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 whitespace-nowrap">📡 자동스캔 채널</button>
                         <button onclick="setCategoryFilter('korean')" class="cat-pill px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 whitespace-nowrap">국내 FM</button>
                         <button onclick="setCategoryFilter('music')" class="cat-pill px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 whitespace-nowrap">음악/LO-FI</button>
                         <button onclick="setCategoryFilter('news')" class="cat-pill px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 whitespace-nowrap">뉴스/시사</button>
@@ -374,7 +393,7 @@
             <h3 class="text-lg font-bold text-amber-400 mb-1 flex items-center gap-2">
                 <i class="fa-solid fa-radio"></i> 커스텀 스트리밍 채널 추가
             </h3>
-            <p class="text-xs text-gray-400 mb-4">원하는 인터넷 라디오 스트림 주소(m3u8, mp3, aac 등)를 추가해보세요.</p>
+            <p class="text-xs text-gray-400 mb-4">원하는 인터넷 라디오 스트림 주소(m3u8, mp3, aac)를 추가해보세요.</p>
 
             <form onsubmit="handleCustomStationSubmit(event)" class="space-y-3">
                 <div>
@@ -393,8 +412,13 @@
                            class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-xs text-gray-100 focus:outline-none focus:border-amber-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-1">스트림 URL (.m3u8 또는 .mp3)</label>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">주 스트림 URL (.m3u8 또는 .mp3)</label>
                     <input type="url" id="customUrl" required placeholder="https://domain.com/stream/playlist.m3u8" 
+                           class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-xs text-gray-100 focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">백업 스트림 URL (선택)</label>
+                    <input type="url" id="customBackupUrl" placeholder="https://backup-domain.com/stream.mp3" 
                            class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-xs text-gray-100 focus:outline-none focus:border-amber-500">
                 </div>
 
@@ -411,118 +435,30 @@
 
     <!-- Footer -->
     <footer class="w-full py-3 px-6 text-center text-xs text-gray-500 border-t border-gray-800/60 glass-panel">
-        <p>FM Radio Player Web Application • HLS / Web Audio API Receiver</p>
+        <p>FM Radio Player Web Application • Smart Streaming Mirror & Web Audio Visualizer</p>
     </footer>
 
     <script>
-        /* ==========================================================================
-           STATIONS DATABASE
-           ========================================================================== */
-        const DEFAULT_STATIONS = [
-            {
-                freq: 88.1,
-                name: "EBS FM (교육방송)",
-                genre: "지식 / 교양 / 학술 / 클래식",
-                category: "korean",
-                url: "https://ebsonair.ebs.co.kr/fmradiofamilypc/familypc1m/playlist.m3u8"
-            },
-            {
-                freq: 89.7,
-                name: "WTS Jazz & Blues Radio",
-                genre: "재즈 / 블루스 / 스무스 멜로디",
-                category: "music",
-                url: "https://stream.zeno.fm/f3wvbbqmdg8uv"
-            },
-            {
-                freq: 91.5,
-                name: "Lo-Fi Beats Chill FM",
-                genre: "로파이 / 비트 / 공부 / 수면",
-                category: "music",
-                url: "https://stream.zeno.fm/0r0xa792kwzuv"
-            },
-            {
-                freq: 93.9,
-                name: "CBS 음악FM",
-                genre: "가요 / POP / 클래식 / 음악 전문",
-                category: "korean",
-                url: "https://aac.cbs.co.kr/cbs939/_definst_/cbs939.stream/playlist.m3u8"
-            },
-            {
-                freq: 95.1,
-                name: "TBS FM (교통방송)",
-                genre: "교통 / 대중음악 / 지역 정보",
-                category: "korean",
-                url: "https://tbs.seoul.kr/live/fm.m3u8"
-            },
-            {
-                freq: 97.7,
-                name: "Retro 80s 90s Hits FM",
-                genre: "8090 추억의 팝 / 디스코",
-                category: "music",
-                url: "https://stream.zeno.fm/4t323y4s8y8uv"
-            },
-            {
-                freq: 98.1,
-                name: "CBS 표준FM",
-                genre: "뉴스 / 시사 / 오피니언",
-                category: "news",
-                url: "https://aac.cbs.co.kr/cbs981/_definst_/cbs981.stream/playlist.m3u8"
-            },
-            {
-                freq: 99.1,
-                name: "국악방송 (Gugak FM)",
-                genre: "전통음악 / 국악 / 한국 문화",
-                category: "korean",
-                url: "https://mgugaklive.nowcdn.co.kr/gugakradio/gugakradio.stream/playlist.m3u8"
-            },
-            {
-                freq: 101.9,
-                name: "BBS 불교방송",
-                genre: "불교 / 문화 / 교양",
-                category: "korean",
-                url: "https://bbslive.clouducs.com/bbsradio-live/livestream/playlist.m3u8"
-            },
-            {
-                freq: 102.7,
-                name: "Deep House Chillout Radio",
-                genre: "딥하우스 / 일렉트로닉 / 라운지",
-                category: "music",
-                url: "https://stream.zeno.fm/a0qgh2v2kwzuv"
-            },
-            {
-                freq: 104.5,
-                name: "KFN 국방FM",
-                genre: "음악 / 정보 / 장병 어울림",
-                category: "korean",
-                url: "https://mediaworks.dema.mil.kr/live_edge/audio.sdp/playlist.m3u8"
-            },
-            {
-                freq: 105.3,
-                name: "Global World News Live",
-                genre: "글로벌 뉴스 / 시사 정보",
-                category: "news",
-                url: "https://stream.zeno.fm/f1443m32kwzuv"
-            },
-            {
-                freq: 106.9,
-                name: "FEBC 서울극동방송",
-                genre: "복음 / 종교 / 클래식",
-                category: "korean",
-                url: "http://mlive2.febc.net:1935/live/seoulfm/playlist.m3u8"
-            }
-        ];
-
         /* ==========================================================================
            GLOBAL STATE MANAGEMENT
            ========================================================================== */
         let stations = [];
         let favorites = new Set();
+        let scannedStations = new Set(); // Stores frequencies found during Auto Scan
         let currentFreq = 93.9;
         let isPlaying = false;
         let activeCategory = 'all';
         let searchQuery = '';
         let hlsPlayer = null;
         let noiseEffectEnabled = true;
+
+        // Auto Scan & Tour Mode State
+        let isScanning = false;
+        let scanMode = null; // 'spectrum' | 'tour' | 'sweep'
+        let scanIntervalId = null;
+
+        // Health Status map per station frequency: 'online' | 'backup' | 'error' | 'checking'
+        let stationHealth = {};
 
         // Audio Context & Web Audio Processing Nodes
         let audioCtx = null;
@@ -533,415 +469,162 @@
         let noiseGainNode = null;
         let noiseBufferNode = null;
 
+        // Web Audio FM Synth mode for offline simulation
+        let isSynthMode = false;
+        let synthOsc = null;
+        let synthGain = null;
+
         let sleepTimerId = null;
         let sleepTimerMinutes = 0;
 
         /* ==========================================================================
-           INITIALIZATION & LIFECYCLE
+           AUTO FREQUENCY SCAN & SWEEP ENGINE
            ========================================================================== */
-        window.addEventListener('DOMContentLoaded', () => {
-            audioElement = document.getElementById('audioPlayer');
-            loadLocalStorageData();
-            buildRulerTicks();
-            renderStationList();
-            tuneToFrequency(currentFreq, false);
-            setupCanvasVisualizer();
+        function toggleAutoScanMenu() {
+            const panel = document.getElementById('scanMenuPanel');
+            panel.classList.toggle('hidden');
+        }
 
-            // Close dropdown menu when clicking outside
-            window.addEventListener('click', (e) => {
-                if (!e.target.closest('#sleepTimerBtn') && !e.target.closest('#timerMenu')) {
-                    document.getElementById('timerMenu').classList.add('hidden');
+        function toggleAutoScan() {
+            if (isScanning) {
+                stopAutoScan();
+            } else {
+                toggleAutoScanMenu();
+            }
+        }
+
+        function startSpectrumScan() {
+            stopAutoScan();
+            initWebAudio();
+
+            isScanning = true;
+            scanMode = 'spectrum';
+            scannedStations.clear();
+
+            document.getElementById('scanIndicator').classList.remove('hidden');
+            document.getElementById('scanBtnText').innerText = "스캔 중지";
+            document.getElementById('scanBtnIcon').className = "fa-solid fa-circle-stop text-red-400 animate-pulse";
+            document.getElementById('scanMenuPanel').classList.add('hidden');
+
+            let scanFreq = 87.5;
+            stopStream();
+
+            scanIntervalId = setInterval(() => {
+                scanFreq = Math.round((scanFreq + 0.1) * 10) / 10;
+                if (scanFreq > 108.0) {
+                    stopAutoScan();
+                    alert(`FM 주파수 스캔이 완료되었습니다! 총 ${scannedStations.size}개의 수신 가능한 채널을 감지했습니다.`);
+                    setCategoryFilter('scanned');
+                    return;
                 }
-            });
-        });
 
-        function loadLocalStorageData() {
-            // Load saved custom stations
-            const savedCustom = localStorage.getItem('fm_custom_stations');
-            let customList = [];
-            if (savedCustom) {
-                try { customList = JSON.parse(savedCustom); } catch (e) {}
-            }
-            stations = [...DEFAULT_STATIONS, ...customList];
+                currentFreq = scanFreq;
+                document.getElementById('freqDisplay').innerText = scanFreq.toFixed(1);
+                document.getElementById('freqSlider').value = scanFreq;
 
-            // Sort stations by frequency
-            stations.sort((a, b) => a.freq - b.freq);
+                // Play realistic tuning noise
+                playTuningNoiseBurst();
 
-            // Load saved favorites
-            const savedFavs = localStorage.getItem('fm_favorites');
-            if (savedFavs) {
-                try {
-                    const parsed = JSON.parse(savedFavs);
-                    favorites = new Set(parsed);
-                } catch (e) {}
-            }
+                // Check if frequency matches an existing active station
+                const matched = stations.find(s => Math.abs(s.freq - scanFreq) < 0.05);
+                if (matched) {
+                    scannedStations.add(matched.freq);
+                    document.getElementById('stationTitle').innerText = `[스캔 감지] ${matched.name}`;
+                    document.getElementById('stationGenre').innerText = matched.genre;
+                } else {
+                    document.getElementById('stationTitle').innerText = "탐색 중...";
+                    document.getElementById('stationGenre').innerText = `${scanFreq.toFixed(1)} MHz 수신 신호 스캔`;
+                }
+            }, 120);
         }
 
-        function buildRulerTicks() {
-            const container = document.getElementById('tickContainer');
-            container.innerHTML = '';
-            for (let i = 0; i < 40; i++) {
-                const tick = document.createElement('div');
-                tick.className = i % 5 === 0 ? 'w-0.5 h-3 bg-amber-500/60' : 'w-0.5 h-1.5 bg-gray-600';
-                container.appendChild(tick);
-            }
+        function startTourMode() {
+            stopAutoScan();
+            initWebAudio();
+
+            isScanning = true;
+            scanMode = 'tour';
+
+            document.getElementById('scanIndicator').classList.remove('hidden');
+            document.getElementById('scanBtnText').innerText = "투어 중지";
+            document.getElementById('scanBtnIcon').className = "fa-solid fa-circle-stop text-red-400 animate-pulse";
+            document.getElementById('scanMenuPanel').classList.add('hidden');
+
+            let tourIndex = 0;
+            let sorted = [...stations].sort((a, b) => a.freq - b.freq);
+
+            const playNextTourStation = () => {
+                if (!isScanning) return;
+
+                if (tourIndex >= sorted.length) tourIndex = 0;
+                const station = sorted[tourIndex];
+                tourIndex++;
+
+                tuneToFrequency(station.freq, true);
+
+                // Schedule next station jump after 5 seconds
+                scanIntervalId = setTimeout(playNextTourStation, 5000);
+            };
+
+            playNextTourStation();
         }
 
-        /* ==========================================================================
-           WEB AUDIO API & EQUALIZER & STATIC NOISE GENERATOR
-           ========================================================================== */
-        function initWebAudio() {
-            if (audioCtx) return;
-
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AudioContext();
-
-            // Create media source node
-            sourceNode = audioCtx.createMediaElementSource(audioElement);
-
-            // Biquad filter for Equalizer
-            biquadFilter = audioCtx.createBiquadFilter();
-            biquadFilter.type = 'peaking';
-            biquadFilter.frequency.value = 1000;
-            biquadFilter.Q.value = 1;
-            biquadFilter.gain.value = 0;
-
-            // Analyser node for Audio Spectrum
-            analyserNode = audioCtx.createAnalyser();
-            analyserNode.fftSize = 64;
-
-            // Connect processing graph: Source -> EQ Filter -> Analyser -> Destination
-            sourceNode.connect(biquadFilter);
-            biquadFilter.connect(analyserNode);
-            analyserNode.connect(audioCtx.destination);
-
-            // Create White Noise Buffer for Tuning Effect
-            const bufferSize = audioCtx.sampleRate * 2;
-            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const output = noiseBuffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                output[i] = Math.random() * 2 - 1;
-            }
-
-            noiseBufferNode = audioCtx.createBufferSource();
-            noiseBufferNode.buffer = noiseBuffer;
-            noiseBufferNode.loop = true;
-
-            noiseGainNode = audioCtx.createGain();
-            noiseGainNode.gain.value = 0; // Silenced by default
-
-            noiseBufferNode.connect(noiseGainNode);
-            noiseGainNode.connect(audioCtx.destination);
-            noiseBufferNode.start();
-        }
-
-        function playTuningNoiseBurst() {
-            if (!noiseEffectEnabled) return;
-            if (!audioCtx) initWebAudio();
-            if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-
-            if (noiseGainNode) {
-                noiseGainNode.gain.cancelScheduledValues(audioCtx.currentTime);
-                noiseGainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
-                noiseGainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.35);
-            }
-        }
-
-        function setEqPreset(type) {
-            if (!audioCtx) initWebAudio();
-            
-            // Highlight active button
-            document.querySelectorAll('.eq-btn').forEach(btn => {
-                btn.classList.remove('bg-amber-500', 'text-slate-950', 'font-semibold', 'border-amber-400');
-                btn.classList.add('bg-gray-800', 'text-gray-300', 'border-gray-700');
-            });
-
-            event.target.classList.remove('bg-gray-800', 'text-gray-300', 'border-gray-700');
-            event.target.classList.add('bg-amber-500', 'text-slate-950', 'font-semibold', 'border-amber-400');
-
-            if (!biquadFilter) return;
-
-            switch(type) {
-                case 'bass':
-                    biquadFilter.type = 'lowshelf';
-                    biquadFilter.frequency.value = 250;
-                    biquadFilter.gain.value = 7;
-                    break;
-                case 'vocal':
-                    biquadFilter.type = 'peaking';
-                    biquadFilter.frequency.value = 2500;
-                    biquadFilter.gain.value = 5;
-                    break;
-                case 'treble':
-                    biquadFilter.type = 'highshelf';
-                    biquadFilter.frequency.value = 4000;
-                    biquadFilter.gain.value = 8;
-                    break;
-                case 'flat':
-                default:
-                    biquadFilter.type = 'peaking';
-                    biquadFilter.frequency.value = 1000;
-                    biquadFilter.gain.value = 0;
-                    break;
-            }
-        }
-
-        /* ==========================================================================
-           TUNER & PLAYBACK CONTROLS
-           ========================================================================== */
-        function onFreqSliderChange(val) {
-            const freq = parseFloat(val).toFixed(1);
-            document.getElementById('freqDisplay').innerText = freq;
-        }
-
-        function onFreqSliderCommit(val) {
-            const freq = parseFloat(val);
-            tuneToFrequency(freq, true);
-        }
-
-        function stepFrequency(delta) {
-            let next = (parseFloat(currentFreq) + delta);
-            if (next < 87.5) next = 108.0;
-            if (next > 108.0) next = 87.5;
-            next = Math.round(next * 10) / 10;
-            
-            document.getElementById('freqSlider').value = next;
-            tuneToFrequency(next, true);
-        }
-
-        function seekStation(direction) {
+        function seekNextStationWithSweep(direction) {
+            stopAutoScan();
+            initWebAudio();
             playTuningNoiseBurst();
 
-            // Find next/prev station frequency relative to currentFreq
             let sorted = [...stations].sort((a, b) => a.freq - b.freq);
             let target = null;
 
             if (direction > 0) {
                 target = sorted.find(s => s.freq > currentFreq);
-                if (!target) target = sorted[0]; // Wrap around
+                if (!target) target = sorted[0];
             } else {
                 target = [...sorted].reverse().find(s => s.freq < currentFreq);
-                if (!target) target = sorted[sorted.length - 1]; // Wrap around
+                if (!target) target = sorted[sorted.length - 1];
             }
 
-            if (target) {
-                document.getElementById('freqSlider').value = target.freq;
-                tuneToFrequency(target.freq, true);
-            }
-        }
+            if (!target) return;
 
-        function tuneToFrequency(freq, autoPlay = true) {
-            currentFreq = parseFloat(freq).toFixed(1);
-            document.getElementById('freqDisplay').innerText = currentFreq;
-            document.getElementById('freqSlider').value = currentFreq;
+            // Animate dial sweep movement step by step to the target frequency
+            let current = parseFloat(currentFreq);
+            let step = direction > 0 ? 0.2 : -0.2;
+            
+            isScanning = true;
+            document.getElementById('scanIndicator').classList.remove('hidden');
 
-            // Find matching station definition
-            const matched = stations.find(s => Math.abs(s.freq - currentFreq) < 0.05);
-
-            const titleEl = document.getElementById('stationTitle');
-            const genreEl = document.getElementById('stationGenre');
-            const statusIcon = document.getElementById('statusIcon');
-            const statusText = document.getElementById('statusText');
-
-            if (matched) {
-                titleEl.innerText = matched.name;
-                genreEl.innerText = matched.genre;
-                updateFavoriteButtonState(matched.freq);
+            scanIntervalId = setInterval(() => {
+                current = Math.round((current + step) * 10) / 10;
                 
-                if (autoPlay) {
-                    loadAndPlayStream(matched.url);
+                if (direction > 0 && current >= target.freq) {
+                    current = target.freq;
+                    stopAutoScan();
+                    tuneToFrequency(current, true);
+                } else if (direction < 0 && current <= target.freq) {
+                    current = target.freq;
+                    stopAutoScan();
+                    tuneToFrequency(current, true);
                 } else {
-                    statusIcon.className = "fa-solid fa-play text-amber-400";
-                    statusText.innerText = "재생 버튼을 누르세요";
-                }
-            } else {
-                // Static / Unassigned Channel
-                titleEl.innerText = "주파수 미배정";
-                genreEl.innerText = "아날로그 주파수 대역";
-                statusIcon.className = "fa-solid fa-ban text-gray-500";
-                statusText.innerText = "신호 없음";
-                updateFavoriteButtonState(null);
-
-                stopStream();
-                playTuningNoiseBurst();
-            }
-
-            renderStationList();
-        }
-
-        function loadAndPlayStream(url) {
-            initWebAudio();
-            if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-
-            playTuningNoiseBurst();
-
-            const statusIcon = document.getElementById('statusIcon');
-            const statusText = document.getElementById('statusText');
-
-            statusIcon.className = "fa-solid fa-circle-notch animate-spin text-amber-400";
-            statusText.innerText = "스트림 연결 중...";
-
-            // Clean up previous HLS instance
-            if (hlsPlayer) {
-                hlsPlayer.destroy();
-                hlsPlayer = null;
-            }
-
-            // Check if HLS stream (.m3u8)
-            if (url.includes('.m3u8')) {
-                if (Hls.isSupported()) {
-                    hlsPlayer = new Hls({
-                        enableWorker: true,
-                        lowLatencyMode: true
-                    });
-                    hlsPlayer.loadSource(url);
-                    hlsPlayer.attachMedia(audioElement);
-                    hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => {
-                        audioElement.play().then(() => {
-                            setPlaybackState(true);
-                        }).catch(err => {
-                            console.warn("Autoplay blocked:", err);
-                            setPlaybackState(false);
-                        });
-                    });
-                    hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
-                        if (data.fatal) {
-                            statusIcon.className = "fa-solid fa-triangle-exclamation text-red-500";
-                            statusText.innerText = "방송 연결 오류 (주소 미응답)";
-                            setPlaybackState(false);
-                        }
-                    });
-                } else if (audioElement.canPlayType('application/vnd.apple.mpegurl')) {
-                    // Native Safari HLS
-                    audioElement.src = url;
-                    audioElement.play().then(() => setPlaybackState(true)).catch(() => setPlaybackState(false));
-                }
-            } else {
-                // Regular Direct Audio Stream (MP3 / AAC)
-                audioElement.src = url;
-                audioElement.play().then(() => {
-                    setPlaybackState(true);
-                }).catch(err => {
-                    statusIcon.className = "fa-solid fa-triangle-exclamation text-red-500";
-                    statusText.innerText = "재생 실패 (오디오 정책 제한)";
-                    setPlaybackState(false);
-                });
-            }
-        }
-
-        function togglePlay() {
-            const matched = stations.find(s => Math.abs(s.freq - currentFreq) < 0.05);
-
-            if (isPlaying) {
-                stopStream();
-            } else {
-                if (matched) {
-                    loadAndPlayStream(matched.url);
-                } else {
+                    document.getElementById('freqDisplay').innerText = current.toFixed(1);
+                    document.getElementById('freqSlider').value = current;
                     playTuningNoiseBurst();
                 }
-            }
+            }, 60);
         }
 
-        function stopStream() {
-            if (hlsPlayer) {
-                hlsPlayer.destroy();
-                hlsPlayer = null;
-            }
-            audioElement.pause();
-            audioElement.src = "";
-            setPlaybackState(false);
-        }
-
-        function setPlaybackState(playing) {
-            isPlaying = playing;
-            const playIcon = document.getElementById('playBtnIcon');
-            const statusIcon = document.getElementById('statusIcon');
-            const statusText = document.getElementById('statusText');
-
-            if (playing) {
-                playIcon.className = "fa-solid fa-pause ml-0";
-                statusIcon.className = "fa-solid fa-broadcast-tower text-green-400 animate-pulse";
-                statusText.innerText = "라이브 방송 중";
-            } else {
-                playIcon.className = "fa-solid fa-play ml-1";
-                if (statusText.innerText.includes("연결 중") || statusText.innerText.includes("라이브")) {
-                    statusIcon.className = "fa-solid fa-pause text-amber-400";
-                    statusText.innerText = "일시정지됨";
-                }
-            }
-        }
-
-        function setVolume(val) {
-            audioElement.volume = parseFloat(val);
-            const muteIcon = document.getElementById('muteIcon');
-            if (val == 0) {
-                muteIcon.className = "fa-solid fa-volume-xmark text-lg text-red-400";
-            } else if (val < 0.5) {
-                muteIcon.className = "fa-solid fa-volume-low text-lg text-gray-300";
-            } else {
-                muteIcon.className = "fa-solid fa-volume-high text-lg text-gray-300";
-            }
-        }
-
-        function toggleMute() {
-            const slider = document.getElementById('volumeSlider');
-            if (audioElement.volume > 0) {
-                slider.dataset.lastVol = audioElement.volume;
-                slider.value = 0;
-                setVolume(0);
-            } else {
-                const restored = slider.dataset.lastVol || 0.8;
-                slider.value = restored;
-                setVolume(restored);
-            }
-        }
-
-        function toggleNoiseEffect() {
-            noiseEffectEnabled = !noiseEffectEnabled;
-            const btn = document.getElementById('noiseToggleBtn');
-            if (noiseEffectEnabled) {
-                btn.classList.add('border-amber-500/40', 'bg-amber-500/10', 'text-amber-300');
-                btn.classList.remove('bg-gray-800', 'text-gray-400');
-            } else {
-                btn.classList.remove('border-amber-500/40', 'bg-amber-500/10', 'text-amber-300');
-                btn.classList.add('bg-gray-800', 'text-gray-400');
-            }
-        }
-
-        /* ==========================================================================
-           FAVORITES & STATION MANAGER
-           ========================================================================== */
-        function toggleFavoriteCurrent() {
-            const matched = stations.find(s => Math.abs(s.freq - currentFreq) < 0.05);
-            if (!matched) return;
-
-            if (favorites.has(matched.freq)) {
-                favorites.delete(matched.freq);
-            } else {
-                favorites.add(matched.freq);
+        function stopAutoScan() {
+            isScanning = false;
+            scanMode = null;
+            if (scanIntervalId) {
+                clearInterval(scanIntervalId);
+                clearTimeout(scanIntervalId);
+                scanIntervalId = null;
             }
 
-            localStorage.setItem('fm_favorites', JSON.stringify(Array.from(favorites)));
-            updateFavoriteButtonState(matched.freq);
-            renderStationList();
-        }
-
-        function updateFavoriteButtonState(freq) {
-            const favIcon = document.getElementById('favIcon');
-            const favText = document.getElementById('favText');
-
-            if (freq && favorites.has(freq)) {
-                favIcon.className = "fa-solid fa-star text-amber-400";
-                favText.innerText = "즐겨찾기 됨";
-            } else {
-                favIcon.className = "fa-regular fa-star text-amber-400";
-                favText.innerText = "즐겨찾기 추가";
-            }
+            document.getElementById('scanIndicator').classList.add('hidden');
+            document.getElementById('scanBtnText').innerText = "자동 스캔";
+            document.getElementById('scanBtnIcon').className = "fa-solid fa-radar text-amber-400";
         }
 
         function setCategoryFilter(cat) {
@@ -956,23 +639,17 @@
             renderStationList();
         }
 
-        function filterStations() {
-            searchQuery = document.getElementById('searchInput').value.toLowerCase();
-            renderStationList();
-        }
-
         function renderStationList() {
             const container = document.getElementById('stationListContainer');
             container.innerHTML = '';
 
             let filtered = stations.filter(s => {
-                // Category filter
                 if (activeCategory === 'korean' && s.category !== 'korean') return false;
                 if (activeCategory === 'music' && s.category !== 'music') return false;
                 if (activeCategory === 'news' && s.category !== 'news') return false;
                 if (activeCategory === 'fav' && !favorites.has(s.freq)) return false;
+                if (activeCategory === 'scanned' && !scannedStations.has(s.freq)) return false;
 
-                // Search query filter
                 if (searchQuery) {
                     const matchName = s.name.toLowerCase().includes(searchQuery);
                     const matchGenre = s.genre.toLowerCase().includes(searchQuery);
@@ -998,6 +675,18 @@
             filtered.forEach(s => {
                 const isSelected = Math.abs(s.freq - currentFreq) < 0.05;
                 const isFav = favorites.has(s.freq);
+                const health = stationHealth[s.freq] || 'online';
+
+                let badgeHtml = '';
+                if (health === 'checking') {
+                    badgeHtml = '<span class="text-[10px] text-amber-400"><i class="fa-solid fa-spinner animate-spin"></i></span>';
+                } else if (health === 'backup') {
+                    badgeHtml = '<span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">백업 연결</span>';
+                } else if (health === 'error') {
+                    badgeHtml = '<span class="text-[9px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30">점검 필요</span>';
+                } else {
+                    badgeHtml = '<span class="text-[9px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 border border-green-500/30">정상</span>';
+                }
 
                 const item = document.createElement('div');
                 item.className = `p-3 rounded-xl border transition cursor-pointer flex items-center justify-between ${
@@ -1017,7 +706,10 @@
                             ${s.freq.toFixed(1)}
                         </div>
                         <div class="truncate">
-                            <h4 class="text-xs font-bold ${isSelected ? 'text-amber-300' : 'text-gray-200'} truncate">${s.name}</h4>
+                            <div class="flex items-center gap-2">
+                                <h4 class="text-xs font-bold ${isSelected ? 'text-amber-300' : 'text-gray-200'} truncate">${s.name}</h4>
+                                ${badgeHtml}
+                            </div>
                             <p class="text-[10px] text-gray-400 truncate mt-0.5">${s.genre}</p>
                         </div>
                     </div>
@@ -1048,7 +740,7 @@
         }
 
         /* ==========================================================================
-           CUSTOM STATION MODAL
+           CUSTOM STATION MODAL & SLEEP TIMER
            ========================================================================== */
         function openCustomStationModal() {
             document.getElementById('customModal').classList.remove('hidden');
@@ -1064,6 +756,7 @@
             const name = document.getElementById('customName').value.trim();
             const genre = document.getElementById('customGenre').value.trim() || '사용자 정의';
             const url = document.getElementById('customUrl').value.trim();
+            const backupUrl = document.getElementById('customBackupUrl').value.trim() || null;
 
             if (!freq || !name || !url) return;
 
@@ -1072,30 +765,23 @@
                 name,
                 genre,
                 category: 'custom',
-                url
+                url,
+                backupUrl
             };
 
-            // Save to localStorage
             const savedCustom = localStorage.getItem('fm_custom_stations');
             let customList = savedCustom ? JSON.parse(savedCustom) : [];
             customList.push(newStation);
             localStorage.setItem('fm_custom_stations', JSON.stringify(customList));
 
-            // Reload DB
             loadLocalStorageData();
             closeCustomStationModal();
 
-            // Tune to new station directly
             document.getElementById('freqSlider').value = newStation.freq;
             tuneToFrequency(newStation.freq, true);
-
-            // Reset form
             e.target.reset();
         }
 
-        /* ==========================================================================
-           SLEEP TIMER
-           ========================================================================== */
         function toggleTimerMenu() {
             document.getElementById('timerMenu').classList.toggle('hidden');
         }
@@ -1165,7 +851,6 @@
                 for (let i = 0; i < bufferLength; i++) {
                     const barHeight = (dataArray[i] / 255) * height;
 
-                    // Dynamic Gradient Color
                     const gradient = ctx.createLinearGradient(0, height, 0, 0);
                     gradient.addColorStop(0, '#f59e0b');
                     gradient.addColorStop(0.6, '#06b6d4');
