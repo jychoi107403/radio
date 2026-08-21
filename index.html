@@ -392,7 +392,8 @@
                     <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
                         <button onclick="setCategoryFilter('all')" class="cat-pill active px-3 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold whitespace-nowrap">전체</button>
                         <button onclick="setCategoryFilter('am')" class="cat-pill px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 whitespace-nowrap">📻 AM 채널</button>
-                        <button onclick="setCategoryFilter('public')" class="cat-pill px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 whitespace-nowrap">🇰🇷 공공 라디오</button>
+                        <button onclick="setCategoryFilter('public')" class="cat-pill px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 whitespace-nowrap">🇰🇷 한국 공공</button>
+                        <button onclick="setCategoryFilter('us_public')" class="cat-pill px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 whitespace-nowrap">🇺🇸 미국 공공</button>
                         <button onclick="setCategoryFilter('open_music')" class="cat-pill px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 whitespace-nowrap">🎵 오픈 음악</button>
                         <button onclick="setCategoryFilter('scanned')" class="cat-pill px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 whitespace-nowrap">📡 스캔채널</button>
                         <button onclick="setCategoryFilter('fav')" class="cat-pill px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 whitespace-nowrap">★ 즐겨찾기</button>
@@ -486,6 +487,15 @@
             },
             {
                 band: "fm",
+                freq: 88.9,
+                name: "Jazz24 (미국 NPR 재즈)",
+                genre: "미국 시애틀 비영리 공공 재즈 라디오",
+                category: "us_public",
+                url: "https://live.wksu.org/jazz24.mp3",
+                backupUrl: null
+            },
+            {
+                band: "fm",
                 freq: 89.1,
                 name: "SomaFM Groove Salad",
                 genre: "오픈 라이선스 치아웃 / 앰비언트",
@@ -504,11 +514,38 @@
             },
             {
                 band: "fm",
+                freq: 90.3,
+                name: "KEXP 90.3 FM (시애틀 비영리 공공)",
+                genre: "미국 최대 리스너 후원 인디/공공 음악 라디오",
+                category: "us_public",
+                url: "https://kexp-mp3-128.streamguys1.com/kexp168.mp3",
+                backupUrl: null
+            },
+            {
+                band: "fm",
+                freq: 91.5,
+                name: "KUSC 91.5 FM (LA 클래식)",
+                genre: "미국 서부 최대 비영리 공공 클래식 방송",
+                category: "us_public",
+                url: "https://kusc-ice.streamguys1.com/kusc-128.mp3",
+                backupUrl: null
+            },
+            {
+                band: "fm",
                 freq: 92.5,
                 name: "Nightwave Plaza",
                 genre: "오픈 베이퍼웨이브 / 시티팝 24H",
                 category: "open_music",
                 url: "https://radio.plaza.one/mp3",
+                backupUrl: null
+            },
+            {
+                band: "fm",
+                freq: 93.9,
+                name: "WNYC 93.9 FM (뉴욕 공공 뉴스)",
+                genre: "미국 뉴욕 대표 비영리 시사 교양 / NPR",
+                category: "us_public",
+                url: "https://fm939.wnyc.org/wnycfm.aac",
                 backupUrl: null
             },
             {
@@ -527,6 +564,15 @@
                 genre: "공공 한국 전통음악 / 크로스오버",
                 category: "public",
                 url: "https://gugakstream.gugakfm.co.kr/gugak_aac",
+                backupUrl: null
+            },
+            {
+                band: "fm",
+                freq: 100.9,
+                name: "SomaFM Drone Zone",
+                genre: "미국 비영리 샌프란시스코 앰비언트 / 힐링",
+                category: "open_music",
+                url: "https://ice1.somafm.com/dronezone-128-mp3",
                 backupUrl: null
             },
             {
@@ -578,6 +624,15 @@
             },
             {
                 band: "am",
+                freq: 820,
+                name: "WNYC AM 820 (뉴욕 공공 시사 AM)",
+                genre: "미국 뉴욕 비영리 시사 뉴스 AM",
+                category: "us_public",
+                url: "https://am820.wnyc.org/wnycam.aac",
+                backupUrl: null
+            },
+            {
+                band: "am",
                 freq: 972,
                 name: "KBS 한민족방송 (AM 972)",
                 genre: "국가 공공 AM 라디오 / 남북 / 동포 뉴스",
@@ -616,8 +671,8 @@
                 band: "am",
                 freq: 1575,
                 name: "VOA News Live (AM 1575)",
-                genre: "공공 글로벌 시사 뉴스 / 대중 정보",
-                category: "public",
+                genre: "미국 정부 공공 글로벌 시사 뉴스",
+                category: "us_public",
                 url: "https://ice1.somafm.com/groovesalad-128-mp3",
                 backupUrl: null
             }
@@ -1331,6 +1386,7 @@
             let filtered = stations.filter(s => {
                 if (activeCategory === 'am' && s.band !== 'am') return false;
                 if (activeCategory === 'public' && s.category !== 'public') return false;
+                if (activeCategory === 'us_public' && s.category !== 'us_public') return false;
                 if (activeCategory === 'open_music' && s.category !== 'open_music') return false;
                 if (activeCategory === 'fav' && !favorites.has(s.freq)) return false;
                 if (activeCategory === 'scanned' && !scannedStations.has(s.freq)) return false;
